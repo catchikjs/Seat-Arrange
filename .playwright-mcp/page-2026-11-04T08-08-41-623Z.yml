@@ -1,0 +1,277 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "✳ 자리배치 함께 자라는 수학교실" [ref=e3] [cursor=pointer]:
+      - /url: ./
+      - generic [ref=e4]: ✳
+      - text: 자리배치
+      - generic [ref=e5]: 함께 자라는 수학교실
+    - generic [ref=e6]: 이 브라우저에 자동 저장
+  - main [ref=e8]:
+    - complementary [ref=e9]:
+      - generic [ref=e10]:
+        - text: CLASS SETTINGS
+        - heading "우리 반 준비하기" [level=2] [ref=e11]
+        - paragraph [ref=e12]: 새로운 만남이 시작되는 자리.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - heading "학생 명단" [level=3] [ref=e15]
+          - generic [ref=e16]: 20명
+        - paragraph [ref=e17]: 기본 20명 · 이름을 눌러 수정하세요.
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: "01"
+            - textbox "1번 이름" [ref=e21]: 학생 1
+            - generic [ref=e22]: •
+          - generic [ref=e23]:
+            - generic [ref=e24]: "02"
+            - textbox "2번 이름" [ref=e25]: 학생 2
+            - generic [ref=e26]: •
+          - generic [ref=e27]:
+            - generic [ref=e28]: "03"
+            - textbox "3번 이름" [ref=e29]: 학생 3
+            - generic [ref=e30]: •
+          - generic [ref=e31]:
+            - generic [ref=e32]: "04"
+            - textbox "4번 이름" [ref=e33]: 학생 4
+            - generic [ref=e34]: •
+          - generic [ref=e35]:
+            - generic [ref=e36]: "05"
+            - textbox "5번 이름" [ref=e37]: 학생 5
+            - generic [ref=e38]: •
+          - generic [ref=e39]:
+            - generic [ref=e40]: "06"
+            - textbox "6번 이름" [ref=e41]: 학생 6
+            - generic [ref=e42]: •
+          - generic [ref=e43]:
+            - generic [ref=e44]: "07"
+            - textbox "7번 이름" [ref=e45]: 학생 7
+            - generic [ref=e46]: •
+          - generic [ref=e47]:
+            - generic [ref=e48]: "08"
+            - textbox "8번 이름" [ref=e49]: 학생 8
+            - generic [ref=e50]: •
+          - generic [ref=e51]:
+            - generic [ref=e52]: "09"
+            - textbox "9번 이름" [ref=e53]: 학생 9
+            - generic [ref=e54]: •
+          - generic [ref=e55]:
+            - generic [ref=e56]: "10"
+            - textbox "10번 이름" [ref=e57]: 학생 10
+            - generic [ref=e58]: •
+          - generic [ref=e59]:
+            - generic [ref=e60]: "11"
+            - textbox "11번 이름" [ref=e61]: 학생 11
+            - generic [ref=e62]: •
+          - generic [ref=e63]:
+            - generic [ref=e64]: "12"
+            - textbox "12번 이름" [ref=e65]: 학생 12
+            - generic [ref=e66]: •
+          - generic [ref=e67]:
+            - generic [ref=e68]: "13"
+            - textbox "13번 이름" [ref=e69]: 학생 13
+            - generic [ref=e70]: •
+          - generic [ref=e71]:
+            - generic [ref=e72]: "14"
+            - textbox "14번 이름" [ref=e73]: 학생 14
+            - generic [ref=e74]: •
+          - generic [ref=e75]:
+            - generic [ref=e76]: "15"
+            - textbox "15번 이름" [ref=e77]: 학생 15
+            - generic [ref=e78]: •
+          - generic [ref=e79]:
+            - generic [ref=e80]: "16"
+            - textbox "16번 이름" [ref=e81]: 학생 16
+            - generic [ref=e82]: •
+          - generic [ref=e83]:
+            - generic [ref=e84]: "17"
+            - textbox "17번 이름" [ref=e85]: 학생 17
+            - generic [ref=e86]: •
+          - generic [ref=e87]:
+            - generic [ref=e88]: "18"
+            - textbox "18번 이름" [ref=e89]: 학생 18
+            - generic [ref=e90]: •
+          - generic [ref=e91]:
+            - generic [ref=e92]: "19"
+            - textbox "19번 이름" [ref=e93]: 학생 19
+            - generic [ref=e94]: •
+          - generic [ref=e95]:
+            - generic [ref=e96]: "20"
+            - textbox "20번 이름" [ref=e97]: 학생 20
+            - generic [ref=e98]: •
+        - generic [ref=e99]:
+          - generic [ref=e100]: 전학생 이름
+          - textbox "전학생 이름" [ref=e101]
+          - button "전학생 추가" [ref=e102] [cursor=pointer]: ＋
+        - paragraph [ref=e103]: 새 번호가 자동으로 부여됩니다.
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - heading "배치 제외" [level=3] [ref=e106]
+          - generic [ref=e107]: ↗
+        - paragraph [ref=e108]: 제적·전출 학생의 번호를 입력해 주세요.
+        - generic [ref=e110]:
+          - generic [ref=e111]: 제외할 학생 번호
+          - textbox "제외할 학생 번호" [ref=e112]:
+            - /placeholder: "예: 3, 7, 12"
+          - button "제외" [ref=e113] [cursor=pointer]
+        - paragraph [ref=e114]: 제외 기록의 ↶ 버튼으로 복구할 수 있어요.
+      - generic [ref=e115]:
+        - generic [ref=e116]: ✦
+        - generic [ref=e117]:
+          - strong [ref=e118]: 작은 변화, 새로운 친구
+          - paragraph [ref=e119]: 자리가 바뀌면 생각도 가까워져요.오늘은 누구와 함께 풀어볼까요?
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: A NEW SEAT, A NEW CONNECTION
+          - heading "Good쌤의 수학교실" [level=1] [ref=e124]
+          - paragraph [ref=e125]: 자리를 바꾸고, 새로운 생각을 만나보세요.
+        - button "↥ 배치표 인쇄" [ref=e126] [cursor=pointer]:
+          - generic [ref=e127]: ↥
+          - text: 배치표 인쇄
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - generic [ref=e130]: ▦
+          - strong [ref=e131]: 우리 수학교실
+          - generic [ref=e133]: 2행 × 3열 원탁
+          - generic [ref=e134]: ·
+          - generic [ref=e135]: 20명 참여
+        - generic [ref=e136]:
+          - button "배경음과 효과음 끄기" [pressed] [ref=e137] [cursor=pointer]: ♫ 소리 켜짐
+          - button "✎ 자리 수정" [ref=e138] [cursor=pointer]
+          - button "⤨ 자리 섞기" [ref=e139] [cursor=pointer]:
+            - generic [ref=e140]: ⤨
+            - text: 자리 섞기
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]: OUR CLASSROOM
+          - generic [ref=e144]: 교탁 방향 ↓
+        - generic "2행 3열 원탁 자리배치, 예외 테이블은 1행 1열" [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]: "01"
+              - strong [ref=e150]: 새싹 모둠
+              - generic [ref=e151]: 4 / 4
+              - generic [ref=e152]: 소인원 우선 · 1행 1열
+            - generic [ref=e153]:
+              - generic [ref=e154]: "02"
+              - strong [ref=e155]: 햇살 모둠
+              - generic [ref=e156]: 4 / 4
+            - generic [ref=e157]:
+              - generic [ref=e158]: "03"
+              - strong [ref=e159]: 나무 모둠
+              - generic [ref=e160]: 3 / 4
+            - generic [ref=e161]:
+              - generic [ref=e162]: "04"
+              - strong [ref=e163]: 바람 모둠
+              - generic [ref=e164]: 3 / 4
+            - generic [ref=e165]:
+              - generic [ref=e166]: "05"
+              - strong [ref=e167]: 구름 모둠
+              - generic [ref=e168]: 3 / 4
+            - generic [ref=e169]:
+              - generic [ref=e170]: "06"
+              - strong [ref=e171]: 열매 모둠
+              - generic [ref=e172]: 3 / 4
+          - generic [ref=e173]:
+            - button "1모둠 1번 자리, 8번 학생 8" [ref=e174] [cursor=pointer]:
+              - generic [aria-hidden]: "8"
+              - generic [ref=e177]: ••
+            - button "1모둠 2번 자리, 17번 학생 17" [ref=e178] [cursor=pointer]:
+              - generic [aria-hidden]: "17"
+              - generic [ref=e181]: ••
+            - button "1모둠 3번 자리, 20번 학생 20" [ref=e182] [cursor=pointer]:
+              - generic [aria-hidden]: "20"
+              - generic [ref=e185]: ••
+            - button "1모둠 4번 자리, 6번 학생 6" [ref=e186] [cursor=pointer]:
+              - generic [aria-hidden]: "6"
+              - generic [ref=e189]: ••
+            - button "2모둠 1번 자리, 10번 학생 10" [ref=e190] [cursor=pointer]:
+              - generic [aria-hidden]: "10"
+              - generic [ref=e193]: ••
+            - button "2모둠 2번 자리, 15번 학생 15" [ref=e194] [cursor=pointer]:
+              - generic [aria-hidden]: "15"
+              - generic [ref=e197]: ••
+            - button "2모둠 3번 자리, 12번 학생 12" [ref=e198] [cursor=pointer]:
+              - generic [aria-hidden]: "12"
+              - generic [ref=e201]: ••
+            - button "2모둠 4번 자리, 18번 학생 18" [ref=e202] [cursor=pointer]:
+              - generic [aria-hidden]: "18"
+              - generic [ref=e205]: ••
+            - button "3모둠 1번 자리, 14번 학생 14" [ref=e206] [cursor=pointer]:
+              - generic [aria-hidden]: "14"
+              - generic [ref=e209]: ••
+            - button "3모둠 2번 자리, 13번 학생 13" [ref=e210] [cursor=pointer]:
+              - generic [aria-hidden]: "13"
+              - generic [ref=e213]: ••
+            - button "3모둠 3번 자리, 1번 학생 1" [ref=e214] [cursor=pointer]:
+              - generic [aria-hidden]: "1"
+              - generic [ref=e217]: ••
+            - button "3모둠 4번 자리, 빈자리" [ref=e218] [cursor=pointer]:
+              - generic [ref=e219]: +
+              - generic [ref=e220]: 빈자리
+            - button "4모둠 1번 자리, 5번 학생 5" [ref=e221] [cursor=pointer]:
+              - generic [aria-hidden]: "5"
+              - generic [ref=e224]: ••
+            - button "4모둠 2번 자리, 16번 학생 16" [ref=e225] [cursor=pointer]:
+              - generic [aria-hidden]: "16"
+              - generic [ref=e228]: ••
+            - button "4모둠 3번 자리, 4번 학생 4" [ref=e229] [cursor=pointer]:
+              - generic [aria-hidden]: "4"
+              - generic [ref=e232]: ••
+            - button "4모둠 4번 자리, 빈자리" [ref=e233] [cursor=pointer]:
+              - generic [ref=e234]: +
+              - generic [ref=e235]: 빈자리
+            - button "5모둠 1번 자리, 7번 학생 7" [ref=e236] [cursor=pointer]:
+              - generic [aria-hidden]: "7"
+              - generic [ref=e239]: ••
+            - button "5모둠 2번 자리, 19번 학생 19" [ref=e240] [cursor=pointer]:
+              - generic [aria-hidden]: "19"
+              - generic [ref=e243]: ••
+            - button "5모둠 3번 자리, 9번 학생 9" [ref=e244] [cursor=pointer]:
+              - generic [aria-hidden]: "9"
+              - generic [ref=e247]: ••
+            - button "5모둠 4번 자리, 빈자리" [ref=e248] [cursor=pointer]:
+              - generic [ref=e249]: +
+              - generic [ref=e250]: 빈자리
+            - button "6모둠 1번 자리, 2번 학생 2" [ref=e251] [cursor=pointer]:
+              - generic [aria-hidden]: "2"
+              - generic [ref=e254]: ••
+            - button "6모둠 2번 자리, 11번 학생 11" [ref=e255] [cursor=pointer]:
+              - generic [aria-hidden]: "11"
+              - generic [ref=e258]: ••
+            - button "6모둠 3번 자리, 3번 학생 3" [ref=e259] [cursor=pointer]:
+              - generic [aria-hidden]: "3"
+              - generic [ref=e262]: ••
+            - button "6모둠 4번 자리, 빈자리" [ref=e263] [cursor=pointer]:
+              - generic [ref=e264]: +
+              - generic [ref=e265]: 빈자리
+        - generic "교실 아래쪽 교탁" [ref=e266]:
+          - generic [ref=e267]: 선생님
+          - strong [ref=e268]: 교탁
+        - generic [ref=e269]:
+          - status [ref=e272]: 모두 자리에 앉았어요
+          - generic [ref=e273]: 원탁당 최대 4명
+      - generic [ref=e274]:
+        - paragraph [ref=e275]:
+          - text: ☝
+          - strong [ref=e276]: 선생님의 손길이 필요할 땐
+          - text: ‘자리 수정’을 눌러 두 자리를 선택하거나 학생을 끌어 옮겨 주세요.
+        - generic [ref=e277]: ● LIVE CLASSROOM
+      - generic [ref=e278]:
+        - generic [ref=e279]:
+          - generic [ref=e280]: ☺
+          - generic [ref=e281]:
+            - strong [ref=e282]: 함께, 사이좋게
+            - paragraph [ref=e283]: 여섯 모둠에 인원을 고르게 나눠요.
+        - generic [ref=e284]:
+          - generic [ref=e285]: ✧
+          - generic [ref=e286]:
+            - strong [ref=e287]: 움직이는 자리배치
+            - paragraph [ref=e288]: 내 캐릭터를 따라 새 자리로 출발!
+        - generic [ref=e289]:
+          - generic [ref=e290]: ✎
+          - generic [ref=e291]:
+            - strong [ref=e292]: 마지막은 선생님이
+            - paragraph [ref=e293]: 빈자리 이동과 학생 간 자리 교환까지.
+      - generic [ref=e294]: 자리배치 · 함께 앉아, 함께 자라는 시간
+  - status

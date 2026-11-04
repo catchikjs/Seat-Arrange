@@ -61,3 +61,200 @@
   .classroom-scroll { overflow: visible; }
   .teacher-desk { margin: 8px auto; padding: 4px 16px; print-color-adjust: exact; }
 }
+
+.shuffling { box-shadow: 0 0 0 2px #b89a5c55, 0 5px 28px #a3833326; }
+.shuffling .occupied { z-index: 4; pointer-events: none; }
+.shuffling .empty { opacity: .25; }
+.shuffling .legend-dot { background: #b88b36; }
+.shuffling #room-status { color: #8a642d; font-weight: 700; }
+@media (max-width: 560px) {
+  .toolbar-actions { flex-wrap: wrap; }
+}
+
+/* 번호는 몸의 흔들림과 독립적으로 머리 위에 고정합니다. */
+.student-badge {
+  position: absolute;
+  bottom: 59px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  min-width: 33px;
+  height: 29px;
+  padding: 0 7px;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  background: #ffe16a;
+  color: #362700;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px #dca72c, 0 3px 9px #64450930;
+  z-index: 5;
+  pointer-events: none;
+}
+.occupied { justify-content: flex-start; padding-top: 18px; }
+.person { height: 48px; flex-shrink: 0; }
+.person-body { bottom: 10px; z-index: 2; }
+.person-arm, .person-leg {
+  position: absolute;
+  display: block;
+  transform-origin: 50% 3px;
+  border-radius: 5px;
+}
+.person-arm {
+  top: 23px;
+  width: 7px;
+  height: 19px;
+  background: linear-gradient(var(--shirt) 0 48%, #f0cca5 48%);
+  z-index: 3;
+}
+.arm-left { left: 0; rotate: 12deg; }
+.arm-right { right: -1px; rotate: -12deg; }
+.person-leg { top: 35px; width: 8px; height: 14px; background: #405064; }
+.leg-left { left: 9px; }
+.leg-right { right: 7px; }
+.person-leg::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 5px;
+  border-radius: 3px;
+  background: #263346;
+}
+.shuffling .person { animation: walking-bob .5s linear infinite; }
+.shuffling .person-arm,
+.shuffling .person-leg { animation: limb-stride .5s ease-in-out infinite alternate; }
+.shuffling .arm-right,
+.shuffling .leg-left { animation-delay: -.5s; }
+.shuffling .student-badge { animation: number-glow 1s ease-in-out infinite alternate; }
+@keyframes walking-bob {
+  0%, 100% { translate: 0 0; rotate: -2deg; }
+  50% { translate: 0 -2px; rotate: 2deg; }
+}
+@keyframes limb-stride {
+  from { transform: rotate(-30deg) translateY(-1px); }
+  to { transform: rotate(30deg) translateY(1px); }
+}
+@keyframes number-glow {
+  from { box-shadow: 0 0 0 2px #dca72c, 0 0 8px #ffd34e70; }
+  to { box-shadow: 0 0 0 3px #efb725, 0 0 18px #ffd34ecc; }
+}
+@media (max-width: 560px) {
+  .occupied { padding-top: 12px; }
+  .student-badge { bottom: 51px; min-width: 28px; height: 25px; font-size: 18px; border-radius: 8px; }
+  .occupied .seat-name { font-size: 12px; }
+}
+@media print {
+  .student-badge { box-shadow: none; border-color: #9c7a23; print-color-adjust: exact; }
+}
+
+/* 이동 중에만 팔다리를 펼치고, 착석하면 의자에 단정히 앉습니다. */
+.classroom-shell:not(.shuffling) .person-arm,
+.classroom-shell:not(.shuffling) .person-leg { display: none; }
+.classroom-shell:not(.shuffling) .person::before {
+  content: '';
+  position: absolute;
+  inset: 23px 0 6px;
+  border: 3px solid #997956;
+  border-radius: 8px;
+  background: #dcc5a6;
+}
+.shuffling .meeting .person,
+.shuffling .meeting .person-arm,
+.shuffling .meeting .person-leg { animation-play-state: paused; }
+
+/* 작은 안내 문구까지 명확하게 읽히는 대비와 크기 */
+.eyebrow { color: #526447; font-size: 11px; }
+.brand-caption, .local-status, .sidebar-heading p, .page-heading p,
+.helper, .sidebar-note p, .below-room p, .bottom-cards p, footer {
+  color: #53614e;
+  font-size: 12px;
+}
+.helper { line-height: 1.8; }
+.roster input { color: #293e2c; font-size: 14px; font-weight: 600; }
+.student-number { color: #58664e; font-size: 12px; font-weight: 700; }
+input::placeholder { color: #65715e; font-size: 12px; }
+.room-summary { color: #526047; font-size: 12px; }
+.room-summary strong, .below-room strong, .bottom-cards strong,
+.sidebar-note strong { color: #334a31; font-size: 13px; }
+.button { font-size: 13px; }
+.room-label, .direction, .room-bottom, .live-badge { color: #526348; font-size: 11px; }
+.round-table strong { color: #5c452c; font-size: 14px; }
+.table-number, .table-count { color: #705637; font-size: 11px; font-weight: 700; }
+.empty .seat-name { color: #65735b; font-size: 11px; }
+.empty-circle { color: #687b58; border-color: #859775; }
+#room-status { color: #344f32; font-size: 12px; font-weight: 700; }
+@media (max-width: 560px) {
+  .room-summary { font-size: 11px; }
+  .round-table strong { font-size: 11px; }
+  .table-number, .table-count { font-size: 10px; }
+  .room-bottom, .direction { font-size: 10px; }
+  .bottom-cards p, .below-room p { font-size: 11px; }
+  .bottom-cards strong { font-size: 12px; }
+  
+}
+
+/* 번호를 따라보는 무대: 움직이는 학생과 완성된 모둠만 강조합니다. */
+.shuffling .person,
+.shuffling .person-arm,
+.shuffling .person-leg { animation-play-state: paused; }
+.shuffling .walking .person,
+.shuffling .walking .person-arm,
+.shuffling .walking .person-leg { animation-play-state: running; }
+.shuffling .meeting .person,
+.shuffling .meeting .person-arm,
+.shuffling .meeting .person-leg { animation-play-state: paused; }
+.shuffling .student-badge { animation: none; }
+.student-badge {
+  background: #ffdf73;
+  border-color: #fffdf5;
+  box-shadow: 0 0 0 1px #bb923b, 0 2px 5px #463c2626;
+}
+.shuffling .walking .student-badge {
+  background: #fff3bb;
+  box-shadow: 0 0 0 2px #d7a62c, 0 0 14px #ffce5550;
+}
+.shuffling .meeting .student-badge {
+  background: #d8f7ef;
+  color: #104e46;
+  box-shadow: 0 0 0 2px #3d9e8d, 0 0 15px #43bca650;
+}
+
+.shuffling .round-table { opacity: .7; transition: opacity .4s, box-shadow .4s; }
+.shuffling .round-table.revealed {
+  opacity: 1;
+  box-shadow: 0 5px 0 #dfc8aa, 0 0 0 4px #69a58c44, 0 0 24px #69a58c33;
+}
+.shuffling .arrived .person-arm,
+.shuffling .arrived .person-leg { display: none; }
+.shuffling .arrived .student-badge { background: #d8f7ef; color: #174d40; border-color: #fff; box-shadow: 0 0 0 1px #5b9e88; }
+.shuffling { box-shadow: 0 5px 24px #29493818; }
+.shuffling #room-status { color: #244e43; }
+.room-bottom { min-height: 36px; }
+#room-status { line-height: 1.6; }
+
+
+
+/* 테이블에 머무는 동안에는 걷기를 멈추고 단정하게 앉습니다. */
+.shuffling .trying-seat .person-arm,
+.shuffling .trying-seat .person-leg { display: none; }
+.shuffling .trying-seat .person::before,
+.shuffling .arrived .person::before {
+  content: '';
+  position: absolute;
+  inset: 23px 0 6px;
+  border: 3px solid #997956;
+  border-radius: 8px;
+  background: #dcc5a6;
+}
+.shuffling .trying-seat .student-badge {
+  background: #ffdf73;
+  box-shadow: 0 0 0 1px #bb923b, 0 2px 5px #463c2626;
+}
+
+.sound-credit { display: block; width: fit-content; margin: 8px auto 0; color: #53614e; font-size: 10px; text-underline-offset: 3px; }
+@media print { .sound-credit { display: none; } }

@@ -1,4 +1,6 @@
 import './style.css'
+import { planTableVisits } from './seat-animation.js'
+import { startSuspense, playFinale, stopSound, setSoundEnabled } from './sound.js'
 
 const $ = (selector) => document.querySelector(selector)
 const STORAGE_KEY = 'jarisup-classroom-v1'
@@ -130,10 +132,18 @@ function renderRoom() {
     if (s) {
       node.style.setProperty('--shirt', colors[(s.id - 1) % colors.length])
       const person = make('span', `person hair-${s.id % 3}`)
-      person.append(make('span', 'person-body'), make('span', 'person-head', '••'))
-      const displayName = s.name.replace(/^학생\s+(\d+)$/, '학생$1')
-      node.title = `${s.id}번 ${displayName}`
-      node.append(person, make('span', 'seat-name', displayName))
+      person.setAttribute('aria-hidden', 'true')
+      person.append(
+        make('span', 'person-arm arm-left'), make('span', 'person-arm arm-right'),
+        make('span', 'person-leg leg-left'), make('span', 'person-leg leg-right'),
+        make('span', 'person-body'), make('span', 'person-head', '••')
+      )
+      const defaultName = /^학생\s*\d+$/.test(s.name)
+      node.title = `${s.id}번 ${s.name}`
+      const badge = make('span', 'student-badge', String(s.id))
+      badge.setAttribute('aria-hidden', 'true')
+      node.append(badge, person)
+      if (!defaultName) node.append(make('span', 'seat-name', s.name))
     } else node.append(make('span', 'empty-circle', '+'), make('span', 'seat-name', '빈자리'))
     const p = position(index)
     node.style.left = p.left; node.style.top = p.top
@@ -169,6 +179,8 @@ $('#edit-toggle').onclick = () => {
   renderRoom()
 }
 function lockControls(locked) {
+  $('#print').disabled = locked
+  for (const el of document.querySelectorAll('#roster input, #excluded button')) el.disabled = locked
   $('#shuffle').disabled = locked
   $('#edit-toggle').disabled = locked
   for (const el of document.querySelectorAll('#add-form input, #add-form button, #exclude-form input, #exclude-form button')) el.disabled = locked
@@ -179,21 +191,156 @@ $('#shuffle').onclick = async () => {
   busy = true; selected = null; lockControls(true)
   $('#shuffle').textContent = '✦ 이동하는 중…'
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
-  const old = new Map([...$('#students').children].filter(el => el.classList.contains('occupied')).map(el => [el.dataset.key, el.getBoundingClientRect()]))
-  arrange(); renderRoom(); save()
+  const old = new Map([...$('#students').children].filter(el => el.classList.contains('occupied')).map(el => [el.dataset.key, { rect: el.getBoundingClientRect(), index: Number(el.dataset.index) }]))
+  arrange(); renderRoom()
+  $('.classroom-shell').classList.add('shuffling')
+  $('#classroom').setAttribute('aria-busy', 'true')
+  $('#room-status').textContent = '두근두근… 새 자리를 찾고 있어요!'
+  startSuspense()
   const animations = []
-  for (const node of $('#students').children) {
-    const before = old.get(node.dataset.key)
-    if (!before) continue
-    const after = node.getBoundingClientRect()
-    const transform = getComputedStyle(node).transform
-    animations.push(node.animate([
-      { transform: `translate(${before.left - after.left}px, ${before.top - after.top}px) ${transform}` },
-      { transform: `translate(${(before.left - after.left) * .4}px, ${(before.top - after.top) * .4 - 22}px) ${transform}`, offset: .55 },
-      { transform }
-    ], { duration: reduced ? 1 : 1400, delay: reduced ? 0 : Math.random() * 250, easing: 'cubic-bezier(.4,0,.2,1)' }).finished)
+  const stageTimers = []
+  try {
+    const room = $('#classroom').getBoundingClientRect()
+    const keys = shuffled([...old.keys()])
+    const revealOrder = shuffled([0, 1, 2, 3, 4, 5])
+    const later = (seconds, action) => stageTimers.push(setTimeout(action, seconds * 1000))
+    const students = new Map([...document.querySelectorAll('#students .occupied')].map(node => [node.dataset.key, node]))
+    $('.room-label').textContent = 'FIND YOUR TEAM'
+    $('#room-status').textContent = '어느 테이블이 우리 모둠이 될까요?'
+    const seatCenters = []
+    const probe = make('button', 'seat occupied')
+    probe.style.visibility = 'hidden'
+    $('#students').append(probe)
+    for (let index = 0; index < 24; index++) {
+      const p = position(index)
+      probe.style.left = p.left; probe.style.top = p.top
+      probe.style.setProperty('--x', `${p.x}px`); probe.style.setProperty('--y', `${p.y}px`)
+      probe.dataset.side = index % 4
+      const rect = probe.getBoundingClientRect()
+      seatCenters.push({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    }
+    probe.remove()
+    const finalStart = 12
+    const finalMoveDuration = 3.2
+    const animationDuration = finalStart + finalMoveDuration
+    const finalSeats = new Map([...students].map(([key, node]) => [key, Number(node.dataset.index)]))
+    const finalStarts = new Map([...finalSeats.keys()].map(key => [key, finalStart]))
+    const visits = planTableVisits(keys.map(key => [key, old.get(key).index]), finalStarts, finalSeats)
+    const seatedAt = new Map(keys.map(key => [key, old.get(key).index]))
+    const refreshCounts = () => {
+      const counts = Array(6).fill(0)
+      for (const seat of seatedAt.values()) counts[Math.floor(seat / 4)]++
+      counts.forEach((count, table) => { $('#tables').children[table].querySelector('.table-count').textContent = `${count} / 4` })
+    }
+    for (const [key, itinerary] of visits) {
+      for (const visit of itinerary) {
+        later(visit.start, () => {
+          const node = students.get(key)
+          node.classList.remove('trying-seat')
+          node.classList.add('walking')
+          seatedAt.delete(key)
+          refreshCounts()
+        })
+        later(visit.arrival, () => {
+          const node = students.get(key)
+          node.classList.remove('walking')
+          node.classList.add('trying-seat')
+          seatedAt.set(key, visit.seat)
+          refreshCounts()
+        })
+      }
+    }
+    $('#room-status').textContent = '여러 테이블에 앉아 보며 우리 모둠을 찾아요.'
+    for (const table of revealOrder) {
+      const members = state.seats.slice(table * 4, table * 4 + 4).filter(id => id !== null)
+      const start = finalStart
+      members.forEach((id, side) => {
+        later(start, () => {
+          const node = students.get(`student-${id}`)
+          node.classList.remove('trying-seat')
+          node.classList.add('walking')
+          seatedAt.delete(`student-${id}`)
+          refreshCounts()
+        })
+        later(start + finalMoveDuration, () => {
+          const node = students.get(`student-${id}`)
+          node.classList.remove('walking')
+          node.classList.add('arrived')
+          seatedAt.set(`student-${id}`, table * 4 + side)
+          refreshCounts()
+        })
+      })
+      later(start + finalMoveDuration, () => {
+        const tableNode = $('#tables').children[table]
+        tableNode.classList.add('revealed')
+        tableNode.querySelector('.table-count').textContent = `${members.length} / 4`
+        $('#room-status').textContent = `${tableNames[table]} 모둠 완성 · ${members.map(id => id + '번').join(', ') || '빈 모둠'}`
+      })
+    }
+    for (const table of $('#tables').children) table.querySelector('.table-count').textContent = '···'
+    for (const node of $('#students').children) {
+      const previous = old.get(node.dataset.key)
+      if (!previous) continue
+      const before = previous.rect
+      const after = node.getBoundingClientRect()
+      const transform = getComputedStyle(node).transform
+      const cellWidth = room.width / 3
+      const cellHeight = room.height / 2
+      const destination = Math.floor(Number(node.dataset.index) / 4)
+      const center = table => ({ x: room.left + (table % 3 + .5) * cellWidth, y: room.top + (Math.floor(table / 3) + .5) * cellHeight })
+      const rx = cellWidth * .4, ry = cellHeight * .36
+      const frames = []
+      let cursor = { x: before.left + before.width / 2, y: before.top + before.height / 2 }
+      let currentTable = Math.floor(previous.index / 4)
+      const add = (p, time) => frames.push({ transform: `translate(${p.x - after.left - after.width / 2}px, ${p.y - after.top - after.height / 2}px) ${transform}`, offset: time / animationDuration })
+      const moveToSeat = (target, table, start, end) => {
+        const from = center(currentTable), to = center(table)
+        const angleAt = (p, c) => Math.atan2((p.y - c.y) / ry, (p.x - c.x) / rx)
+        const entrance = index => Math.floor(index / 3) === 0 ? Math.PI / 2 : -Math.PI / 2
+        const arc = (c, first, last) => {
+          const turn = ((last - first + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+          return Array.from({ length: 16 }, (_, i) => {
+            const angle = first + turn * (i + 1) / 16
+            return { x: c.x + Math.cos(angle) * rx, y: c.y + Math.sin(angle) * ry }
+          })
+        }
+        const aisleY = room.top + cellHeight
+        const path = [cursor,
+          ...arc(from, angleAt(cursor, from), entrance(currentTable)),
+          { x: from.x, y: aisleY }, { x: to.x, y: aisleY },
+          { x: to.x, y: to.y + Math.sin(entrance(table)) * ry },
+          ...arc(to, entrance(table), angleAt(target, to)), target
+        ]
+        const lengths = [0]
+        for (let i = 1; i < path.length; i++) lengths.push(lengths[i - 1] + Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y))
+        add(cursor, start)
+        path.slice(1).forEach((p, i) => add(p, start + (end - start) * (lengths.at(-1) ? lengths[i + 1] / lengths.at(-1) : 1)))
+        cursor = target
+        currentTable = table
+      }
+      add(cursor, 0)
+      for (const visit of visits.get(node.dataset.key)) {
+        moveToSeat(seatCenters[visit.seat], Math.floor(visit.seat / 4), visit.start, visit.arrival)
+        add(cursor, visit.until)
+      }
+      moveToSeat({ x: after.left + after.width / 2, y: after.top + after.height / 2 }, destination, finalStart, animationDuration)
+      add(cursor, animationDuration)
+      if (!reduced) animations.push(node.animate(frames, { duration: animationDuration * 1000, easing: 'linear' }).finished)
+    }
+    // 동작 줄이기 설정에서도 추첨 대기 시간은 유지합니다.
+    await Promise.allSettled([...animations, new Promise(resolve => setTimeout(resolve, animationDuration * 1000))])
+    playFinale()
+    save()
+  } catch {
+    stopSound()
+  } finally {
+    stageTimers.forEach(clearTimeout)
+    document.querySelectorAll('.occupied').forEach(node => node.classList.remove('meeting', 'walking', 'arrived', 'seeking', 'trying-seat'))
+    document.querySelectorAll('.revealed').forEach(node => node.classList.remove('revealed'))
+    $('.room-label').textContent = 'OUR CLASSROOM'
+    $('.classroom-shell').classList.remove('shuffling')
+    $('#classroom').setAttribute('aria-busy', 'false')
   }
-  await Promise.allSettled(animations)
   busy = false; lockControls(false)
   $('#shuffle').textContent = '⤨ 다시 섞기'
   renderRoster(); renderRoom()
@@ -221,6 +368,14 @@ $('#exclude-form').onsubmit = e => {
   if (invalid.length) return notify(`${invalid.join(', ')}번은 참여 명단에 없어요. 번호를 확인해 주세요.`)
   for (const id of ids) { state.students.find(s => s.id === id).excluded = true; state.seats = state.seats.map(v => v === id ? null : v) }
   selected = null; $('#exclude-numbers').value = ''; update(); notify(`${ids.join(', ')}번을 명단과 배치에서 제외했어요.`)
+}
+let soundEnabled = true
+$('#sound-toggle').onclick = () => {
+  soundEnabled = !soundEnabled
+  setSoundEnabled(soundEnabled)
+  $('#sound-toggle').textContent = soundEnabled ? '♫ 소리 켜짐' : '♫ 소리 꺼짐'
+  $('#sound-toggle').setAttribute('aria-pressed', String(soundEnabled))
+  $('#sound-toggle').setAttribute('aria-label', soundEnabled ? '배경음과 효과음 끄기' : '배경음과 효과음 켜기')
 }
 $('#print').onclick = () => window.print()
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { selected = null; renderRoom() } })
