@@ -1,5 +1,5 @@
 import './style.css'
-import { planTableVisits } from './seat-animation.js'
+import { planTableVisits, sampleMovement } from './seat-animation.js'
 import { startSuspense, playFinale, stopSound, setSoundEnabled } from './sound.js'
 
 const $ = (selector) => document.querySelector(selector)
@@ -167,7 +167,6 @@ function renderRoom() {
     table.append(make('span', 'table-number', String(i + 1).padStart(2, '0')), make('strong', '', `${name} 모둠`), make('span', 'table-count', `${state.seats.slice(i * 4, i * 4 + 4).filter(id => id !== null).length} / 4`))
     if (i === EXCEPTION_TABLE_INDEX && active().length < 24) {
       table.classList.add('exception-table')
-      table.append(make('span', 'exception-label', '소인원 우선 · 1행 1열'))
     }
     $('#tables').append(table)
   })
@@ -242,8 +241,12 @@ function lockControls(locked) {
   $('#fullscreen-toggle').disabled = locked && !expanded
   for (const el of document.querySelectorAll('#roster input, #excluded button')) el.disabled = locked
   $('#shuffle').disabled = locked
+  $('#stop-shuffle').disabled = !locked
   $('#edit-toggle').disabled = locked
   for (const el of document.querySelectorAll('#add-form input, #add-form button, #exclude-form input, #exclude-form button')) el.disabled = locked
+}
+$('#stop-shuffle').onclick = () => {
+  if (busy) finishShuffle?.(true)
 }
 $('#shuffle').onclick = async () => {
   if (busy) return
@@ -256,30 +259,37 @@ $('#shuffle').onclick = async () => {
   $('.classroom-shell').classList.add('shuffling')
   $('#classroom').setAttribute('aria-busy', 'true')
   $('#room-status').textContent = '두근두근… 새 자리를 찾고 있어요!'
-  startSuspense()
   const animations = []
-  const stageTimers = []
+  let stageFrame
+  let stopped = false
   try {
     const room = $('#classroom').getBoundingClientRect()
     const keys = shuffled([...old.keys()])
     const revealOrder = shuffled([0, 1, 2, 3, 4, 5])
-    const later = (seconds, action) => stageTimers.push(setTimeout(action, seconds * 1000))
+    const events = []
+    const later = (seconds, action) => events.push({ time: seconds, action })
     const students = new Map([...document.querySelectorAll('#students .occupied')].map(node => [node.dataset.key, node]))
     $('.room-label').textContent = 'FIND YOUR TEAM'
     $('#room-status').textContent = '어느 테이블이 우리 모둠이 될까요?'
-    const seatCenters = []
-    const probe = make('button', 'seat occupied')
-    probe.style.visibility = 'hidden'
-    $('#students').append(probe)
-    for (let index = 0; index < 24; index++) {
+    // 위치를 모두 설정한 뒤 한 번에 측정해 학생마다 화면을 재계산하지 않습니다.
+    const probes = Array.from({ length: 24 }, (_, index) => {
+      const probe = make('button', 'seat occupied')
+      probe.style.visibility = 'hidden'
       const p = position(index)
       probe.style.left = p.left; probe.style.top = p.top
       probe.style.setProperty('--x', `${p.x}px`); probe.style.setProperty('--y', `${p.y}px`)
       probe.dataset.side = index % 4
+      return probe
+    })
+    $('#students').append(...probes)
+    const seatCenters = probes.map(probe => {
       const rect = probe.getBoundingClientRect()
-      seatCenters.push({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
-    }
-    probe.remove()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    })
+    probes.forEach(probe => probe.remove())
+    const geometry = new Map([...students].map(([key, node]) => [key, {
+      rect: node.getBoundingClientRect(), transform: getComputedStyle(node).transform
+    }]))
     const finalStart = 12
     const finalMoveDuration = 3.2
     const animationDuration = finalStart + finalMoveDuration
@@ -287,10 +297,14 @@ $('#shuffle').onclick = async () => {
     const finalStarts = new Map([...finalSeats.keys()].map(key => [key, finalStart]))
     const visits = planTableVisits(keys.map(key => [key, old.get(key).index]), finalStarts, finalSeats)
     const seatedAt = new Map(keys.map(key => [key, old.get(key).index]))
+    const countLabels = [...$('#tables').children].map(table => table.querySelector('.table-count'))
     const refreshCounts = () => {
       const counts = Array(6).fill(0)
       for (const seat of seatedAt.values()) counts[Math.floor(seat / 4)]++
-      counts.forEach((count, table) => { $('#tables').children[table].querySelector('.table-count').textContent = `${count} / 4` })
+      counts.forEach((count, table) => {
+        const label = `${count} / 4`
+        if (countLabels[table].textContent !== label) countLabels[table].textContent = label
+      })
     }
     for (const [key, itinerary] of visits) {
       for (const visit of itinerary) {
@@ -299,14 +313,12 @@ $('#shuffle').onclick = async () => {
           node.classList.remove('trying-seat')
           node.classList.add('walking')
           seatedAt.delete(key)
-          refreshCounts()
         })
         later(visit.arrival, () => {
           const node = students.get(key)
           node.classList.remove('walking')
           node.classList.add('trying-seat')
           seatedAt.set(key, visit.seat)
-          refreshCounts()
         })
       }
     }
@@ -314,20 +326,18 @@ $('#shuffle').onclick = async () => {
     for (const table of revealOrder) {
       const members = state.seats.slice(table * 4, table * 4 + 4).filter(id => id !== null)
       const start = finalStart
-      members.forEach((id, side) => {
+      members.forEach(id => {
         later(start, () => {
           const node = students.get(`student-${id}`)
           node.classList.remove('trying-seat')
           node.classList.add('walking')
           seatedAt.delete(`student-${id}`)
-          refreshCounts()
         })
         later(start + finalMoveDuration, () => {
           const node = students.get(`student-${id}`)
           node.classList.remove('walking')
           node.classList.add('arrived')
-          seatedAt.set(`student-${id}`, table * 4 + side)
-          refreshCounts()
+          seatedAt.set(`student-${id}`, state.seats.indexOf(id))
         })
       })
       later(start + finalMoveDuration, () => {
@@ -338,12 +348,10 @@ $('#shuffle').onclick = async () => {
       })
     }
     for (const table of $('#tables').children) table.querySelector('.table-count').textContent = '···'
-    for (const node of $('#students').children) {
-      const previous = old.get(node.dataset.key)
-      if (!previous) continue
+    for (const [key, node] of students) {
+      const previous = old.get(key)
       const before = previous.rect
-      const after = node.getBoundingClientRect()
-      const transform = getComputedStyle(node).transform
+      const { rect: after, transform } = geometry.get(key)
       const cellWidth = room.width / 3
       const cellHeight = room.height / 2
       const destination = Math.floor(Number(node.dataset.index) / 4)
@@ -352,7 +360,7 @@ $('#shuffle').onclick = async () => {
       const frames = []
       let cursor = { x: before.left + before.width / 2, y: before.top + before.height / 2 }
       let currentTable = Math.floor(previous.index / 4)
-      const add = (p, time) => frames.push({ transform: `translate(${p.x - after.left - after.width / 2}px, ${p.y - after.top - after.height / 2}px) ${transform}`, offset: time / animationDuration })
+      const add = (p, time) => frames.push({ transform: `translate3d(${p.x - after.left - after.width / 2}px, ${p.y - after.top - after.height / 2}px, 0) ${transform}`, offset: time / animationDuration })
       const moveToSeat = (target, table, start, end) => {
         const from = center(currentTable), to = center(table)
         const angleAt = (p, c) => Math.atan2((p.y - c.y) / ry, (p.x - c.x) / rx)
@@ -371,10 +379,7 @@ $('#shuffle').onclick = async () => {
           { x: to.x, y: to.y + Math.sin(entrance(table)) * ry },
           ...arc(to, entrance(table), angleAt(target, to)), target
         ]
-        const lengths = [0]
-        for (let i = 1; i < path.length; i++) lengths.push(lengths[i - 1] + Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y))
-        add(cursor, start)
-        path.slice(1).forEach((p, i) => add(p, start + (end - start) * (lengths.at(-1) ? lengths[i + 1] / lengths.at(-1) : 1)))
+        sampleMovement(path, start, end).forEach(point => add(point, point.time))
         cursor = target
         currentTable = table
       }
@@ -385,23 +390,54 @@ $('#shuffle').onclick = async () => {
       }
       moveToSeat({ x: after.left + after.width / 2, y: after.top + after.height / 2 }, destination, finalStart, animationDuration)
       add(cursor, animationDuration)
-      if (!reduced) animations.push(node.animate(frames, { duration: animationDuration * 1000, easing: 'linear' }).finished)
+      if (!reduced) {
+        const animation = new Animation(new KeyframeEffect(node, frames, {
+          duration: animationDuration * 1000, easing: 'linear', fill: 'both'
+        }), document.timeline)
+        animation.currentTime = 0
+        animations.push(animation)
+      }
     }
-    // 동작 줄이기 설정에서도 추첨 대기 시간은 유지합니다.
-    await Promise.allSettled([...animations, new Promise(resolve => {
-      stageTimers.push(setTimeout(resolve, animationDuration * 1000))
-      finishShuffle = () => {
-        for (const node of students.values()) node.getAnimations().forEach(animation => animation.finish())
+    // 이동과 착석 표시가 하나의 시계를 따르게 하고 같은 프레임의 변경은 묶습니다.
+    events.sort((a, b) => a.time - b.time)
+    startSuspense()
+    await new Promise(resolve => {
+      let startTime
+      let nextEvent = 0
+      finishShuffle = (stopRequested = false) => {
+        if (stopRequested) {
+          stopped = true
+          stopSound()
+        }
+        cancelAnimationFrame(stageFrame)
+        animations.forEach(animation => animation.finish())
         resolve()
       }
-    })])
-    playFinale()
+      const tick = time => {
+        if (startTime === undefined) {
+          startTime = time
+          animations.forEach(animation => { animation.play(); animation.startTime = startTime })
+        }
+        const elapsed = (time - startTime) / 1000
+        let changed = false
+        while (nextEvent < events.length && events[nextEvent].time <= elapsed) {
+          events[nextEvent++].action()
+          changed = true
+        }
+        if (changed) refreshCounts()
+        if (elapsed >= animationDuration) resolve()
+        else stageFrame = requestAnimationFrame(tick)
+      }
+      stageFrame = requestAnimationFrame(tick)
+    })
+    if (!stopped) playFinale()
     save()
   } catch {
     stopSound()
   } finally {
     finishShuffle = null
-    stageTimers.forEach(clearTimeout)
+    cancelAnimationFrame(stageFrame)
+    animations.forEach(animation => animation.cancel())
     document.querySelectorAll('.occupied').forEach(node => node.classList.remove('meeting', 'walking', 'arrived', 'seeking', 'trying-seat'))
     document.querySelectorAll('.revealed').forEach(node => node.classList.remove('revealed'))
     $('.room-label').textContent = 'OUR CLASSROOM'
@@ -411,7 +447,11 @@ $('#shuffle').onclick = async () => {
   busy = false; lockControls(false)
   $('#shuffle').textContent = '⤨ 다시 섞기'
   renderRoster(); renderRoom()
-  notify('새로운 자리 배치 완료! 내 모둠을 찾아 이동해 볼까요?')
+  if (stopped) {
+    $('#room-status').textContent = '중지됨 · 최종 배치를 저장했어요'
+    $('#shuffle').focus({ preventScroll: true })
+    notify('자리 섞기를 중지하고 최종 배치를 표시했어요.')
+  } else notify('새로운 자리 배치 완료! 내 모둠을 찾아 이동해 볼까요?')
 }
 $('#add-form').onsubmit = e => {
   e.preventDefault()

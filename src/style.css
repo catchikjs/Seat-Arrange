@@ -46,24 +46,13 @@
 .classroom-scroll { overflow-x: auto; padding-bottom: 8px; }
 /* 기본 원탁 6개 중 맨 앞 왼쪽 테이블만 예외 위치로 표시합니다. */
 .exception-table { border: 2px solid #aa8659; }
-.exception-label {
-  padding: 3px 6px;
-  border-radius: 4px;
-  background: #fff8e8;
-  color: #78562d;
-  font-size: 9px;
-  font-weight: 700;
-}
-@media (max-width: 560px) {
-  .exception-label { padding: 2px 3px; font-size: 7px; }
-}
 @media print {
   .classroom-scroll { overflow: visible; }
   .teacher-desk { margin: 8px auto; padding: 4px 16px; print-color-adjust: exact; }
 }
 
 .shuffling { box-shadow: 0 0 0 2px #b89a5c55, 0 5px 28px #a3833326; }
-.shuffling .occupied { z-index: 4; pointer-events: none; }
+.shuffling .occupied { z-index: 4; pointer-events: none; will-change: transform; transition: none; }
 .shuffling .empty { opacity: .25; }
 .shuffling .legend-dot { background: #b88b36; }
 .shuffling #room-status { color: #8a642d; font-weight: 700; }
@@ -125,15 +114,15 @@
   border-radius: 3px;
   background: #263346;
 }
-.shuffling .person { animation: walking-bob .5s linear infinite; }
+.shuffling .person { --person-scale: 1; animation: walking-bob .5s linear infinite; filter: none; }
 .shuffling .person-arm,
 .shuffling .person-leg { animation: limb-stride .5s ease-in-out infinite alternate; }
 .shuffling .arm-right,
 .shuffling .leg-left { animation-delay: -.5s; }
 .shuffling .student-badge { animation: number-glow 1s ease-in-out infinite alternate; }
 @keyframes walking-bob {
-  0%, 100% { translate: 0 0; rotate: -2deg; }
-  50% { translate: 0 -2px; rotate: 2deg; }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg) scale(var(--person-scale)); }
+  50% { transform: translate3d(0, -2px, 0) rotate(2deg) scale(var(--person-scale)); }
 }
 @keyframes limb-stride {
   from { transform: rotate(-30deg) translateY(-1px); }
@@ -144,6 +133,7 @@
   to { box-shadow: 0 0 0 3px #efb725, 0 0 18px #ffd34ecc; }
 }
 @media (max-width: 560px) {
+  .shuffling .person { --person-scale: .83; }
   .occupied { padding-top: 12px; }
   .student-badge { bottom: 51px; min-width: 28px; height: 25px; font-size: 18px; border-radius: 8px; }
   .occupied .seat-name { font-size: 12px; }
@@ -265,6 +255,8 @@ input::placeholder { color: #65715e; font-size: 12px; }
 .settings-collapsed .workspace { grid-template-columns: minmax(0, 1fr); }
 .toolbar { flex-wrap: wrap; }
 .toolbar-actions { flex-wrap: wrap; }
+.stop-button { border: 1px solid #d9aaa0; background: #fff2ee; color: #9b3f30; }
+.stop-button:disabled { cursor: not-allowed; }
 @media (max-width: 850px) {
   .page-actions { flex-direction: column; align-items: flex-end; }
 }
@@ -318,7 +310,6 @@ input::placeholder { color: #65715e; font-size: 12px; }
   .presentation-mode .round-table strong { font-size: calc(14px * var(--room-scale)); }
   .presentation-mode .table-number,
   .presentation-mode .table-count { font-size: calc(11px * var(--room-scale)); }
-  .presentation-mode .exception-label { font-size: calc(9px * var(--room-scale)); }
   .presentation-mode .seat {
     width: calc(84px * var(--room-scale));
     height: calc(62px * var(--room-scale));
@@ -326,6 +317,7 @@ input::placeholder { color: #65715e; font-size: 12px; }
   }
   .presentation-mode .occupied { height: calc(76px * var(--room-scale)); padding-top: calc(18px * var(--room-scale)); }
   .presentation-mode .person {
+    --person-scale: var(--room-scale);
     transform: scale(var(--room-scale));
     transform-origin: top center;
     margin-bottom: calc(48px * (var(--room-scale) - 1));
