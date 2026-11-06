@@ -19,6 +19,10 @@ let editing = false
 let selected = null
 let busy = false
 let timer
+let expanded = false
+let fullscreenPending = false
+let finishShuffle = null
+let previousScroll = { x: 0, y: 0 }
 const active = () => state.students.filter(s => !s.excluded)
 function notify(message) {
   $('#toast').textContent = message
@@ -29,6 +33,60 @@ function notify(message) {
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch { notify('브라우저 저장 공간을 사용할 수 없어 이번 변경은 저장되지 않았어요.') }
 }
+function setExpanded(value) {
+  if (expanded === value) return
+  if (value) previousScroll = { x: window.scrollX, y: window.scrollY }
+  expanded = value
+  document.body.classList.toggle('presentation-mode', expanded)
+  $('#fullscreen-toggle').textContent = expanded ? '⛶ 전체화면 닫기' : '⛶ 전체화면'
+  $('#fullscreen-toggle').setAttribute('aria-pressed', String(expanded))
+  if (!expanded) {
+    window.scrollTo(previousScroll.x, previousScroll.y)
+    $('#fullscreen-toggle').focus({ preventScroll: true })
+  }
+}
+$('#sidebar-toggle').onclick = () => {
+  const collapsed = document.body.classList.toggle('settings-collapsed')
+  $('#class-settings').hidden = collapsed
+  $('#sidebar-toggle').textContent = collapsed ? '◧ 명단·제외 보기' : '◧ 명단·제외 접기'
+  $('#sidebar-toggle').setAttribute('aria-expanded', String(!collapsed))
+}
+$('#fullscreen-toggle').onclick = async () => {
+  if (fullscreenPending) return
+  fullscreenPending = true
+  try {
+    if (expanded) {
+      if (document.fullscreenElement) await document.exitFullscreen()
+      setExpanded(false)
+    } else {
+      setExpanded(true)
+      try {
+        await document.documentElement.requestFullscreen()
+      } catch {
+        // 전체화면 API를 지원하지 않거나 차단한 브라우저도 확대 보기를 제공합니다.
+      }
+    }
+  } catch {
+    notify('전체화면을 닫으려면 Esc 키를 눌러 주세요.')
+  } finally {
+    fullscreenPending = false
+  }
+}
+document.addEventListener('fullscreenchange', () => setExpanded(Boolean(document.fullscreenElement)))
+let roomWidth = 0
+let roomHeight = 0
+new ResizeObserver(() => {
+  const room = $('#classroom')
+  const width = room.clientWidth
+  const height = room.clientHeight
+  if (width !== roomWidth || height !== roomHeight) {
+    // 화면 크기가 바뀌면 진행 중인 추첨을 마무리해 이전 좌표로 움직이지 않게 합니다.
+    finishShuffle?.()
+    roomWidth = width
+    roomHeight = height
+    room.style.setProperty('--room-scale', Math.max(.75, Math.min(1.65, width / 960, height / 480)))
+  }
+}).observe($('#classroom'))
 function shuffled(list) {
   const result = [...list]
   for (let i = result.length - 1; i > 0; i--) {
@@ -180,6 +238,8 @@ $('#edit-toggle').onclick = () => {
 }
 function lockControls(locked) {
   $('#print').disabled = locked
+  $('#sidebar-toggle').disabled = locked
+  $('#fullscreen-toggle').disabled = locked && !expanded
   for (const el of document.querySelectorAll('#roster input, #excluded button')) el.disabled = locked
   $('#shuffle').disabled = locked
   $('#edit-toggle').disabled = locked
@@ -328,12 +388,19 @@ $('#shuffle').onclick = async () => {
       if (!reduced) animations.push(node.animate(frames, { duration: animationDuration * 1000, easing: 'linear' }).finished)
     }
     // 동작 줄이기 설정에서도 추첨 대기 시간은 유지합니다.
-    await Promise.allSettled([...animations, new Promise(resolve => setTimeout(resolve, animationDuration * 1000))])
+    await Promise.allSettled([...animations, new Promise(resolve => {
+      stageTimers.push(setTimeout(resolve, animationDuration * 1000))
+      finishShuffle = () => {
+        for (const node of students.values()) node.getAnimations().forEach(animation => animation.finish())
+        resolve()
+      }
+    })])
     playFinale()
     save()
   } catch {
     stopSound()
   } finally {
+    finishShuffle = null
     stageTimers.forEach(clearTimeout)
     document.querySelectorAll('.occupied').forEach(node => node.classList.remove('meeting', 'walking', 'arrived', 'seeking', 'trying-seat'))
     document.querySelectorAll('.revealed').forEach(node => node.classList.remove('revealed'))
@@ -378,5 +445,10 @@ $('#sound-toggle').onclick = () => {
   $('#sound-toggle').setAttribute('aria-label', soundEnabled ? '배경음과 효과음 끄기' : '배경음과 효과음 켜기')
 }
 $('#print').onclick = () => window.print()
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { selected = null; renderRoom() } })
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return
+  if (expanded && !document.fullscreenElement) setExpanded(false)
+  selected = null
+  if (!busy) renderRoom()
+})
 update()

@@ -258,3 +258,104 @@ input::placeholder { color: #65715e; font-size: 12px; }
 
 .sound-credit { display: block; width: fit-content; margin: 8px auto 0; color: #53614e; font-size: 10px; text-underline-offset: 3px; }
 @media print { .sound-credit { display: none; } }
+
+/* 명단과 제외 설정을 접어 배치표의 가로 공간을 넓힙니다. */
+.page-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.sidebar[hidden] { display: none; }
+.settings-collapsed .workspace { grid-template-columns: minmax(0, 1fr); }
+.toolbar { flex-wrap: wrap; }
+.toolbar-actions { flex-wrap: wrap; }
+@media (max-width: 850px) {
+  .page-actions { flex-direction: column; align-items: flex-end; }
+}
+@media (max-width: 560px) {
+  .page-actions #sidebar-toggle { font-size: 11px; padding: 9px 10px; }
+  .toolbar-actions .button { flex: 1 1 calc(50% - 8px); }
+}
+
+/* 전체화면에서는 조작 버튼과 자리배치만 남기고 화면에 맞춰 확대합니다. */
+@media screen {
+  .presentation-mode { overflow: hidden; }
+  .presentation-mode .topbar,
+  .presentation-mode .sidebar,
+  .presentation-mode .page-heading,
+  .presentation-mode .below-room,
+  .presentation-mode .bottom-cards,
+  .presentation-mode footer { display: none; }
+  .presentation-mode .workspace {
+    position: fixed;
+    inset: 0;
+    display: block;
+    max-width: none;
+    min-height: 0;
+    background: #f7f8f5;
+  }
+  .presentation-mode .main-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px 24px;
+  }
+  .presentation-mode .toolbar { flex-shrink: 0; margin-bottom: 12px; }
+  .presentation-mode .classroom-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 14px 20px;
+  }
+  .presentation-mode .room-top,
+  .presentation-mode .teacher-desk,
+  .presentation-mode .room-bottom { flex-shrink: 0; }
+  .presentation-mode .classroom-scroll { flex: 1; min-height: 0; overflow: auto; }
+  .presentation-mode .classroom { --room-scale: 1; height: 100%; min-width: 640px; min-height: 360px; margin: 0; }
+  .presentation-mode .teacher-desk { margin: 4px auto 12px; padding: 6px 18px; }
+  .presentation-mode .round-table {
+    width: calc(112px * var(--room-scale));
+    height: calc(112px * var(--room-scale));
+    gap: calc(5px * var(--room-scale));
+  }
+  .presentation-mode .round-table strong { font-size: calc(14px * var(--room-scale)); }
+  .presentation-mode .table-number,
+  .presentation-mode .table-count { font-size: calc(11px * var(--room-scale)); }
+  .presentation-mode .exception-label { font-size: calc(9px * var(--room-scale)); }
+  .presentation-mode .seat {
+    width: calc(84px * var(--room-scale));
+    height: calc(62px * var(--room-scale));
+    transform: translate(calc(-50% + var(--x) * var(--room-scale)), calc(-50% + var(--y) * var(--room-scale)));
+  }
+  .presentation-mode .occupied { height: calc(76px * var(--room-scale)); padding-top: calc(18px * var(--room-scale)); }
+  .presentation-mode .person {
+    transform: scale(var(--room-scale));
+    transform-origin: top center;
+    margin-bottom: calc(48px * (var(--room-scale) - 1));
+  }
+  .presentation-mode .student-badge {
+    bottom: calc(59px * var(--room-scale));
+    min-width: calc(33px * var(--room-scale));
+    height: calc(29px * var(--room-scale));
+    padding: 0 calc(7px * var(--room-scale));
+    font-size: calc(21px * var(--room-scale));
+  }
+  .presentation-mode .occupied .seat-name {
+    max-width: calc(120px * var(--room-scale));
+    padding: calc(3px * var(--room-scale)) calc(8px * var(--room-scale));
+    font-size: calc(18px * var(--room-scale));
+  }
+  .presentation-mode .empty-circle {
+    width: calc(32px * var(--room-scale));
+    height: calc(32px * var(--room-scale));
+    font-size: calc(16px * var(--room-scale));
+  }
+  .presentation-mode .empty .seat-name { font-size: calc(11px * var(--room-scale)); }
+  #fullscreen-toggle[aria-pressed="true"] { border-color: #6c9064; background: #edf2e8; color: #304f37; }
+}
+@media screen and (max-width: 560px) {
+  .presentation-mode .main-panel { padding: 12px; }
+  .presentation-mode .classroom-shell { padding: 12px 8px; }
+  .presentation-mode .room-bottom { align-items: flex-start; gap: 8px; }
+  .presentation-mode .room-bottom > span:last-child { white-space: nowrap; }
+}
+@media print {
+  .page-actions { display: none; }
+}
